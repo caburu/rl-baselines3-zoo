@@ -9,7 +9,8 @@ This fork has some minor modifications I've used in my experiments to solve supp
 
 - Included script `julio/safe_evaluate_policy.py` (see details in script comments).
 - Modified `docker/Dockerfile` to include libraries I've used in the experiments (numpy matplotlib pandas tqdm).
-- Modified `scripts/run_docker_gpu.sh` to include a name for the container and paths of my environment and experiment folders.
+- Modified `scripts/run_docker_gpu.sh` to include a name for the container, paths of my environment and experiment folders and change the name of the image.
+- Modified `scripts/build_docker.sh` to change the name of the image.
 - Modifications in `utils/hyperparams_opt.py`:
   - Limited maximum learning rate to 0.001.
   - Fixed entropy coefficient to zero.

@@ -16,5 +16,5 @@ docker run \
   -v $(pwd)/../gym-supplychain:/root/code/gym-supplychain \
   -v $(pwd)/../phd-research/supply-chain/stochastic_demands/supplychain_ext1:/root/code/supplychain_ext1 \
   --mount src=$(pwd),target=/root/code/rl_zoo,type=bind \
-  stablebaselines/rl-baselines3-zoo:latest \
+  juliocaburu/rl-baselines3-zoo:latest \
   bash -c "cd /root/code/rl_zoo/ && bash"
