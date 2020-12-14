@@ -15,6 +15,13 @@ This fork has some minor modifications I've used in my experiments to solve supp
   - Fixed entropy coefficient to zero.
   - Changed *medium* neural network architecture to \[64, 64, 64\].
 
+## Candidate modifications
+
+- I've created a script to run the experiments and I'm not using `enjoy.py` script.
+  - So I didn't check if I should apply [this modification](https://github.com/caburu/rl-baselines-zoo/commit/9424243d93bb81e2ac3f406f3e8fb87b7900e58f) I had made before in (previous) RL Baselines Zoo fork.
+- Include `--copy-bestmodel-freq` argument option:
+  - I had done [this modification](https://github.com/caburu/rl-baselines-zoo/commit/1b7c66b018c4c7961c390cd3875b772defbc4398) in previus RL Baseline Zoo fork. 
+
 
 # RL Baselines3 Zoo: a Collection of Pre-Trained Reinforcement Learning Agents
 
