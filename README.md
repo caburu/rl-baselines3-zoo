@@ -1,5 +1,19 @@
 [![pipeline status](https://gitlab.com/araffin/rl-baselines3-zoo/badges/master/pipeline.svg)](https://gitlab.com/araffin/rl-baselines3-zoo/-/commits/master) [![coverage report](https://gitlab.com/araffin/rl-baselines3-zoo/badges/master/coverage.svg)](https://gitlab.com/araffin/rl-baselines3-zoo/-/commits/master) [![codestyle](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
 
+# Fork of RL Baselines3 Zoo
+
+This fork has some minor modifications I've used in my experiments to solve supply chain planning problems with uncertain demands and leadtimes.
+
+
+## Summary of the modifications
+
+- Included script `julio/safe_evaluate_policy.py` (see details in script comments).
+- Modified `docker/Dockerfile` to include libraries I've used in the experiments (numpy matplotlib pandas tqdm).
+- Modified `scripts/run_docker_gpu.sh` to include a name for the container and paths of my environment and experiment folders.
+- Modifications in `utils/hyperparams_opt.py`:
+  - Limited maximum learning rate to 0.001.
+  - Fixed entropy coefficient to zero.
+  - Changed *medium* neural network architecture to \[64, 64, 64\].
 
 
 # RL Baselines3 Zoo: a Collection of Pre-Trained Reinforcement Learning Agents
