@@ -12,9 +12,8 @@ This fork has some minor modifications I've used in my experiments to solve supp
 - Modified `scripts/run_docker_gpu.sh` to include a name for the container, paths of my environment and experiment folders and change the name of the image.
 - Modified `scripts/build_docker.sh` to change the name of the image.
 - Modifications in `utils/hyperparams_opt.py`:
-  - Limited maximum learning rate to 0.001.
-  - Fixed entropy coefficient to zero.
-  - Changed *medium* neural network architecture to \[64, 64, 64\].
+  - Change various ranges; see file for details.
+- Modifications to remove `sb3_contrib` dependencies.
 
 ## Candidate modifications
 
@@ -22,7 +21,9 @@ This fork has some minor modifications I've used in my experiments to solve supp
   - So I didn't check if I should apply [this modification](https://github.com/caburu/rl-baselines-zoo/commit/9424243d93bb81e2ac3f406f3e8fb87b7900e58f) I had made before in (previous) RL Baselines Zoo fork.
 - Include `--copy-bestmodel-freq` argument option:
   - I had done [this modification](https://github.com/caburu/rl-baselines-zoo/commit/1b7c66b018c4c7961c390cd3875b772defbc4398) in previus RL Baseline Zoo fork. 
-
+- Print hyperparameters values when a trial fail:
+  - When doing hyperparam search, if a trial fails (e.g, NaN values) hyperparam values are not printed in stdout.
+  - So it's necessary to wait the end of the process to check the values in the csv result file.
 
 # RL Baselines3 Zoo: a Collection of Pre-Trained Reinforcement Learning Agents
 
