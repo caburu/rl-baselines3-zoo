@@ -17,7 +17,8 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     :param trial:
     :return:
     """
-    batch_size = trial.suggest_categorical("batch_size", [8, 16, 32, 64, 128, 256, 512])
+    # batch_size = trial.suggest_categorical("batch_size", [8, 16, 32, 64, 128, 256, 512])
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512])
     
     # n_steps = trial.suggest_categorical("n_steps", [8, 16, 32, 64, 128, 256, 512, 1024, 2048])
     n_steps = trial.suggest_categorical("n_steps", [32, 64, 128, 256, 512, 1024, 2048])
@@ -73,9 +74,9 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     # Independent networks usually work best
     # when not working with images
     net_arch = {
-        "small":  [dict(pi=[64, 64], vf=[64, 64])],
-        "medium": [dict(pi=[256, 256], vf=[256, 256])],
-        "large":  [dict(pi=[64, 64, 64], vf=[64, 64, 64])],
+        "small":  [dict(pi=[ 64,  64], vf=[ 64,  64])],
+        "medium": [dict(pi=[128, 128], vf=[128, 128])],
+        "large":  [dict(pi=[256, 256], vf=[256, 256])]
     }[net_arch]
 
     activation_fn = {"tanh": nn.Tanh, "relu": nn.ReLU, "elu": nn.ELU, "leaky_relu": nn.LeakyReLU}[activation_fn]
