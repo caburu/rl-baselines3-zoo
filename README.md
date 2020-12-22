@@ -14,6 +14,8 @@ This fork has some minor modifications I've used in my experiments to solve supp
 - Modifications in `utils/hyperparams_opt.py`:
   - Change various ranges; see file for details.
 - Modifications to remove `sb3_contrib` dependencies.
+- Modification in `utils/exp_manager.py`:
+  - Include standard values of ppo hyperparams as the first trial.
 
 ## Candidate modifications
 

@@ -696,7 +696,27 @@ class ExperimentManager(object):
         )
 
         try:
+            # Include SB3 standard params as the first trial.
+            # TODO: parameterize this as an command line argument option.
+            if self.algo == "ppo":
+                study.enqueue_trial({
+                                    "n_steps": 2048,
+                                    "batch_size": 64,
+                                    "gamma": 0.99,
+                                    "lr": 0.0003,
+                                    "lr_schedule": "constant",
+                                    # "ent_coef": ent_coef,
+                                    "clip_range": 0.2,
+                                    "n_epochs": 10,
+                                    "gae_lambda": 0.95,
+                                    "max_grad_norm": 0.5,
+                                    "vf_coef": 0.5,
+                                    "net_arch": "small",
+                                    "activation_fn": "tanh"
+                                    })
+                                
             study.optimize(self.objective, n_trials=self.n_trials, n_jobs=self.n_jobs)
+
         except KeyboardInterrupt:
             pass
 
