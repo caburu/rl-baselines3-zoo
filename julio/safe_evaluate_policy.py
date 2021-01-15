@@ -47,12 +47,14 @@ def safe_evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
 
 
     episode_rewards, episode_lengths = [], []
+    demands_by_epis = []
     obs = env.reset()
+    demands_by_epis.append(env.envs[0].customer_demands.copy())
     num_episodes = 0
     while num_episodes < n_eval_episodes:
         done, state = False, None
         episode_reward = 0.0
-        episode_length = 0    
+        episode_length = 0
         while not done:
             action, state = model.predict(obs, state=state, deterministic=deterministic)
             if wrap_action: action = [action]
@@ -66,11 +68,13 @@ def safe_evaluate_policy(model, env, n_eval_episodes=10, deterministic=True,
         num_episodes += 1
         episode_rewards.append(episode_reward)
         episode_lengths.append(episode_length)
+        if num_episodes < n_eval_episodes:
+            demands_by_epis.append(env.envs[0].customer_demands.copy())
     mean_reward = np.mean(episode_rewards)
     std_reward = np.std(episode_rewards)
     if reward_threshold is not None:
         assert mean_reward > reward_threshold, ('Mean reward below threshold: '
                                                 f'{mean_reward:.2f} < {reward_threshold:.2f}')
     if return_episode_rewards:
-        return episode_rewards, episode_lengths
+        return episode_rewards, episode_lengths, demands_by_epis
     return mean_reward, std_reward
