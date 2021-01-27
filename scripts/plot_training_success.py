@@ -2,6 +2,7 @@
 Plot training reward
 """
 import argparse
+import importlib
 import os
 
 import numpy as np
@@ -28,9 +29,19 @@ parser.add_argument("-max", "--max-timesteps", help="Max number of timesteps to 
 parser.add_argument("-x", "--x-axis", help="X-axis", choices=["steps", "episodes", "time"], type=str, default="steps")
 parser.add_argument("-y", "--y-axis", help="Y-axis", choices=["success", "reward"], type=str, default="success")
 parser.add_argument("-w", "--episode-window", help="Rolling window size", type=int, default=100)
+parser.add_argument(
+    "--gym-packages",
+    type=str,
+    nargs="+",
+    default=[],
+    help="Additional external Gym environemnt package modules to import (e.g. gym_minigrid)",
+)
 
 args = parser.parse_args()
 
+# Going through custom gym packages to let them register in the global registory
+for env_module in args.gym_packages:
+    importlib.import_module(env_module)
 
 algo = args.algo
 env = args.env

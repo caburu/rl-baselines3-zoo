@@ -2,6 +2,7 @@
 Plot training reward
 """
 import argparse
+import importlib
 import os
 
 from matplotlib import pyplot as plt
@@ -13,12 +14,22 @@ from stable_baselines3.common.results_plotter import X_EPISODES, X_TIMESTEPS, X_
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("algo", type=str)
-parser.add_argument("env", type=str)
-parser.add_argument("exp_folder", type=str)
-parser.add_argument("axis", choices=["steps", "episodes", "time"], type=str)
+parser.add_argument("--algo", type=str)
+parser.add_argument("--env", type=str)
+parser.add_argument("--exp-folder", type=str)
+parser.add_argument("--axis", choices=["steps", "episodes", "time"], type=str)
+parser.add_argument(
+    "--gym-packages",
+    type=str,
+    nargs="+",
+    default=[],
+    help="Additional external Gym environemnt package modules to import (e.g. gym_minigrid)",
+)
 args = parser.parse_args()
 
+# Going through custom gym packages to let them register in the global registory
+for env_module in args.gym_packages:
+    importlib.import_module(env_module)
 
 algo = args.algo
 env = args.env
