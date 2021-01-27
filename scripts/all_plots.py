@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import os
 import pickle
 
@@ -24,7 +25,18 @@ parser.add_argument("--no-display", action="store_true", default=False, help="Do
 parser.add_argument(
     "-print", "--print-n-trials", action="store_true", default=False, help="Print the number of trial for each result"
 )
+parser.add_argument(
+    "--gym-packages",
+    type=str,
+    nargs="+",
+    default=[],
+    help="Additional external Gym environemnt package modules to import (e.g. gym_minigrid)",
+)
 args = parser.parse_args()
+
+# Going through custom gym packages to let them register in the global registory
+for env_module in args.gym_packages:
+    importlib.import_module(env_module)
 
 # Activate seaborn
 seaborn.set()
