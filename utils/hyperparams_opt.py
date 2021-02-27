@@ -174,29 +174,51 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     :return:
     """
     gamma = trial.suggest_categorical("gamma", [0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999])
-    learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
-    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256, 512, 1024, 2048])
+    
+    
+    # learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
+    learning_rate = trial.suggest_loguniform("lr", 1e-5, 0.01)
+    lr_schedule = trial.suggest_categorical('lr_schedule', ['linear', 'constant'])
+    if lr_schedule == "linear":
+        learning_rate = linear_schedule(learning_rate)
+    
+    # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256, 512, 1024, 2048])
+    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024, 2048])
+    
     buffer_size = trial.suggest_categorical("buffer_size", [int(1e4), int(1e5), int(1e6)])
-    learning_starts = trial.suggest_categorical("learning_starts", [0, 1000, 10000, 20000])
+    
+    # learning_starts = trial.suggest_categorical("learning_starts", [0, 1000, 10000, 20000])
+    learning_starts = trial.suggest_categorical("learning_starts", [100, 1000, 10000, 20000])
+    
     # train_freq = trial.suggest_categorical('train_freq', [1, 10, 100, 300])
-    train_freq = trial.suggest_categorical("train_freq", [8, 16, 32, 64, 128, 256, 512])
+    # train_freq = trial.suggest_categorical("train_freq", [8, 16, 32, 64, 128, 256, 512])
+    train_freq = trial.suggest_categorical('train_freq', [1, 2, 10, 180, 360])
+    
     # Polyak coeff
     tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01, 0.02, 0.05])
+    
     # gradient_steps takes too much time
     # gradient_steps = trial.suggest_categorical('gradient_steps', [1, 100, 300])
     gradient_steps = train_freq
+    
     # ent_coef = trial.suggest_categorical('ent_coef', ['auto', 0.5, 0.1, 0.05, 0.01, 0.0001])
     ent_coef = "auto"
+    
     # You can comment that out when not using gSDE
-    log_std_init = trial.suggest_uniform("log_std_init", -4, 1)
+    # log_std_init = trial.suggest_uniform("log_std_init", -4, 1)
+    
     # NOTE: Add "verybig" to net_arch when tuning HER
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    # net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "large"])
+    
     # activation_fn = trial.suggest_categorical('activation_fn', [nn.Tanh, nn.ReLU, nn.ELU, nn.LeakyReLU])
 
     net_arch = {
         "small": [64, 64],
-        "medium": [256, 256],
-        "big": [400, 300],
+        "medium": [128, 128],
+        "large":  [256, 256]
+        # "medium": [256, 256],
+        # "big": [400, 300],
         # Uncomment for tuning HER
         # "verybig": [256, 256, 256],
     }[net_arch]
@@ -205,6 +227,8 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     # if ent_coef == 'auto':
     #     # target_entropy = trial.suggest_categorical('target_entropy', ['auto', 5, 1, 0, -1, -5, -10, -20, -50])
     #     target_entropy = trial.suggest_uniform('target_entropy', -10, 10)
+
+    
 
     return {
         "gamma": gamma,
@@ -217,7 +241,9 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
         "ent_coef": ent_coef,
         "tau": tau,
         "target_entropy": target_entropy,
-        "policy_kwargs": dict(log_std_init=log_std_init, net_arch=net_arch),
+        "policy_kwargs": dict(
+                              # log_std_init=log_std_init, 
+                              net_arch=net_arch),
     }
 
 
