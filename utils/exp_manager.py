@@ -717,16 +717,16 @@ class ExperimentManager(object):
             elif self.algo == "sac":
                 study.enqueue_trial({
                                     "gamma": 0.99,
-                                    "learning_rate": 0.0003,
+                                    "lr": 0.0003,
                                     "lr_schedule": "constant",
                                     "batch_size": 256,
                                     "buffer_size": 1000000,
                                     "learning_starts": 100,
                                     "train_freq": 1,
-                                    "gradient_steps": 1,
-                                    "ent_coef": 'auto',
+                                    # "gradient_steps": 1,
+                                    # "ent_coef": 'auto',
                                     "tau": 0.005,
-                                    "target_entropy": 'auto',
+                                    # "target_entropy": 'auto',
                                     "net_arch": "small",
                                     })
                                 
