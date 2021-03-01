@@ -718,7 +718,7 @@ class ExperimentManager(object):
                 study.enqueue_trial({
                                     "gamma": 0.99,
                                     "lr": 0.0003,
-                                    "lr_schedule": "constant",
+                                    # "lr_schedule": "constant",
                                     "batch_size": 256,
                                     "buffer_size": 1000000,
                                     "learning_starts": 100,

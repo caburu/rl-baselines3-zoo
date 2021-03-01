@@ -178,9 +178,9 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     
     # learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
     learning_rate = trial.suggest_loguniform("lr", 1e-5, 0.01)
-    lr_schedule = trial.suggest_categorical('lr_schedule', ['linear', 'constant'])
-    if lr_schedule == "linear":
-        learning_rate = linear_schedule(learning_rate)
+    # lr_schedule = trial.suggest_categorical('lr_schedule', ['linear', 'constant'])
+    # if lr_schedule == "linear":
+    #    learning_rate = linear_schedule(learning_rate)
     
     # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256, 512, 1024, 2048])
     batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024, 2048])
