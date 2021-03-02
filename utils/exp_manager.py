@@ -642,6 +642,7 @@ class ExperimentManager(object):
         )
 
         try:
+            print("Training trial", trial.number, ":", trial.params)
             model.learn(self.n_timesteps, callback=eval_callback)
             # Free memory
             model.env.close()
@@ -661,7 +662,7 @@ class ExperimentManager(object):
         del model
 
         if is_pruned:
-            print("Trial", trial.number, ":", trial.params)
+            print("Trial", trial.number, "pruned:", trial.params)
             raise optuna.exceptions.TrialPruned()
 
         return reward
