@@ -101,7 +101,23 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
         ),
     }
 
-
+def default_ppo_params() -> Dict[str, Any]:
+    return {
+            "n_steps": 2048,
+            "batch_size": 64,
+            "gamma": 0.99,
+            "lr": 0.0003,
+            "lr_schedule": "constant",
+            # "ent_coef": ent_coef,
+            "clip_range": 0.2,
+            "n_epochs": 10,
+            "gae_lambda": 0.95,
+            "max_grad_norm": 0.5,
+            "vf_coef": 0.5,
+            "net_arch": "small",
+            "activation_fn": "tanh"
+            }
+                                    
 def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
     """
     Sampler for A2C hyperparams.
@@ -245,6 +261,23 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
                               # log_std_init=log_std_init, 
                               net_arch=net_arch),
     }
+
+
+def default_sac_params() -> Dict[str, Any]:
+    return {
+            "gamma": 0.99,
+            "lr": 0.0003,
+            # "lr_schedule": "constant",
+            "batch_size": 256,
+            "buffer_size": 1000000,
+            "learning_starts": 100,
+            "train_freq": 1,
+            # "gradient_steps": 1,
+            # "ent_coef": 'auto',
+            "tau": 0.005,
+            # "target_entropy": 'auto',
+            "net_arch": "small",
+            }
 
 
 def sample_td3_params(trial: optuna.Trial) -> Dict[str, Any]:
@@ -466,3 +499,12 @@ HYPERPARAMS_SAMPLER = {
     "ppo": sample_ppo_params,
     "td3": sample_td3_params,
 }
+
+def default_params(algo: str) -> Dict[str, Any]:
+    if algo == "ppo":
+        return default_ppo_params()
+    elif algo == "sac":
+        return default_sac_params()
+    else:
+        raise NotImplementedError("Missing default parameters for", algo, "algorithm!")
+

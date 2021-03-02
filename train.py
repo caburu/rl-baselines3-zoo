@@ -69,6 +69,9 @@ if __name__ == "__main__":  # noqa: C901
         "--storage", help="Database storage path if distributed optimization should be used", type=str, default=None
     )
     parser.add_argument("--study-name", help="Study name for distributed optimization", type=str, default=None)
+    parser.add_argument(
+        "--default-param-as-first-trial", help="Use algorithm's default parameters values as the first trial", action="store_true", default=False
+    )
     parser.add_argument("--verbose", help="Verbose mode (0: no output, 1: INFO)", default=1, type=int)
     parser.add_argument(
         "--gym-packages",
@@ -155,6 +158,7 @@ if __name__ == "__main__":  # noqa: C901
         seed=args.seed,
         log_interval=args.log_interval,
         save_replay_buffer=args.save_replay_buffer,
+        default_param_as_first_trial=args.default_param_as_first_trial,
         verbose=args.verbose,
         vec_env_type=args.vec_env,
     )

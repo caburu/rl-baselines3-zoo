@@ -32,7 +32,7 @@ from torch import nn as nn  # noqa: F401
 # Register custom envs
 import utils.import_envs  # noqa: F401 pytype: disable=import-error
 from utils.callbacks import SaveVecNormalizeCallback, TrialEvalCallback
-from utils.hyperparams_opt import HYPERPARAMS_SAMPLER
+from utils.hyperparams_opt import HYPERPARAMS_SAMPLER, default_params
 from utils.utils import ALGOS, get_callback_list, get_latest_run_id, get_wrapper_class, linear_schedule
 
 
@@ -72,6 +72,7 @@ class ExperimentManager(object):
         seed: int = 0,
         log_interval: int = 0,
         save_replay_buffer: bool = False,
+        default_param_as_first_trial: bool = False,
         verbose: int = 1,
         vec_env_type: str = "dummy",
     ):
@@ -129,6 +130,7 @@ class ExperimentManager(object):
         self.args = args
         self.log_interval = log_interval
         self.save_replay_buffer = save_replay_buffer
+        self.default_param_as_first_trial = default_param_as_first_trial
 
         self.log_path = f"{log_folder}/{self.algo}/"
         self.save_path = os.path.join(
@@ -659,6 +661,7 @@ class ExperimentManager(object):
         del model
 
         if is_pruned:
+            print("Trial", trial.number, ":", trial.params)
             raise optuna.exceptions.TrialPruned()
 
         return reward
@@ -696,39 +699,9 @@ class ExperimentManager(object):
         )
 
         try:
-            # Include SB3 standard params as the first trial.
-            # TODO: parameterize this as an command line argument option.
-            if self.algo == "ppo":
-                study.enqueue_trial({
-                                    "n_steps": 2048,
-                                    "batch_size": 64,
-                                    "gamma": 0.99,
-                                    "lr": 0.0003,
-                                    "lr_schedule": "constant",
-                                    # "ent_coef": ent_coef,
-                                    "clip_range": 0.2,
-                                    "n_epochs": 10,
-                                    "gae_lambda": 0.95,
-                                    "max_grad_norm": 0.5,
-                                    "vf_coef": 0.5,
-                                    "net_arch": "small",
-                                    "activation_fn": "tanh"
-                                    })
-            elif self.algo == "sac":
-                study.enqueue_trial({
-                                    "gamma": 0.99,
-                                    "lr": 0.0003,
-                                    # "lr_schedule": "constant",
-                                    "batch_size": 256,
-                                    "buffer_size": 1000000,
-                                    "learning_starts": 100,
-                                    "train_freq": 1,
-                                    # "gradient_steps": 1,
-                                    # "ent_coef": 'auto',
-                                    "tau": 0.005,
-                                    # "target_entropy": 'auto',
-                                    "net_arch": "small",
-                                    })
+            if self.default_param_as_first_trial:
+                # Include SB3 params params as the first trial.
+                study.enqueue_trial(default_params(self.algo))
                                 
             study.optimize(self.objective, n_trials=self.n_trials, n_jobs=self.n_jobs)
 
@@ -737,12 +710,12 @@ class ExperimentManager(object):
 
         print("Number of finished trials: ", len(study.trials))
 
-        print("Best trial:")
         trial = study.best_trial
+        print("Best trial:", trial.number)
 
-        print("Value: ", trial.value)
+        print("Value:", trial.value)
 
-        print("Params: ")
+        print("Params:")
         for key, value in trial.params.items():
             print(f"    {key}: {value}")
 
