@@ -199,7 +199,7 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     #    learning_rate = linear_schedule(learning_rate)
     
     # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 128, 256, 512, 1024, 2048])
-    batch_size = trial.suggest_categorical("batch_size", [64, 128, 256, 512, 1024, 2048])
+    batch_size = trial.suggest_categorical("batch_size", [64, 100, 256, 512, 1024, 2048])
     
     buffer_size = trial.suggest_categorical("buffer_size", [int(1e4), int(1e5), int(1e6)])
     
@@ -225,16 +225,15 @@ def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
     
     # NOTE: Add "verybig" to net_arch when tuning HER
     # net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "large"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "large", "big"])
     
     # activation_fn = trial.suggest_categorical('activation_fn', [nn.Tanh, nn.ReLU, nn.ELU, nn.LeakyReLU])
 
     net_arch = {
         "small": [64, 64],
-        "medium": [128, 128],
-        "large":  [256, 256]
         # "medium": [256, 256],
-        # "big": [400, 300],
+        "large":  [256, 256],
+        "big": [400, 300],
         # Uncomment for tuning HER
         # "verybig": [256, 256, 256],
     }[net_arch]
@@ -276,7 +275,7 @@ def default_sac_params() -> Dict[str, Any]:
             # "ent_coef": 'auto',
             "tau": 0.005,
             # "target_entropy": 'auto',
-            "net_arch": "small",
+            "net_arch": "large",
             }
 
 
@@ -288,30 +287,40 @@ def sample_td3_params(trial: optuna.Trial) -> Dict[str, Any]:
     :return:
     """
     gamma = trial.suggest_categorical("gamma", [0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999])
-    learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
-    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 100, 128, 256, 512, 1024, 2048])
+    
+    # learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
+    learning_rate = trial.suggest_loguniform("lr", 1e-5, 0.01)
+    
+    # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 100, 128, 256, 512, 1024, 2048])
+    batch_size = trial.suggest_categorical("batch_size", [64, 100, 256, 512, 1024, 2048])
+    
     buffer_size = trial.suggest_categorical("buffer_size", [int(1e4), int(1e5), int(1e6)])
 
     episodic = trial.suggest_categorical("episodic", [True, False])
 
     if episodic:
-        n_episodes_rollout = 1
-        train_freq, gradient_steps = -1, -1
+        train_freq, gradient_steps = (1, "episode"), -1
     else:
         train_freq = trial.suggest_categorical("train_freq", [1, 16, 128, 256, 1000, 2000])
         gradient_steps = train_freq
-        n_episodes_rollout = -1
 
     noise_type = trial.suggest_categorical("noise_type", ["ornstein-uhlenbeck", "normal", None])
     noise_std = trial.suggest_uniform("noise_std", 0, 1)
 
     # NOTE: Add "verybig" to net_arch when tuning HER
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    # net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "large", "big"])
+
     # activation_fn = trial.suggest_categorical('activation_fn', [nn.Tanh, nn.ReLU, nn.ELU, nn.LeakyReLU])
+    
+    # Parâmetros adicionados
+    learning_starts = trial.suggest_categorical("learning_starts", [100, 1000, 10000, 20000])
+    tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01, 0.02, 0.05])
 
     net_arch = {
         "small": [64, 64],
-        "medium": [256, 256],
+        # "medium":  [256, 256],
+        "large":  [256, 256],
         "big": [400, 300],
         # Uncomment for tuning HER
         # "verybig": [256, 256, 256],
@@ -324,8 +333,9 @@ def sample_td3_params(trial: optuna.Trial) -> Dict[str, Any]:
         "buffer_size": buffer_size,
         "train_freq": train_freq,
         "gradient_steps": gradient_steps,
-        "n_episodes_rollout": n_episodes_rollout,
         "policy_kwargs": dict(net_arch=net_arch),
+        "learning_starts": learning_starts,
+        "tau": tau,
     }
 
     if noise_type == "normal":
@@ -338,6 +348,20 @@ def sample_td3_params(trial: optuna.Trial) -> Dict[str, Any]:
         )
 
     return hyperparams
+
+
+def default_td3_params() -> Dict[str, Any]:
+    return {
+            "gamma": 0.99,
+            "lr": 0.001,
+            "batch_size": 100,
+            "buffer_size": 1000000,
+            "learning_starts": 100,
+            "tau": 0.005,
+            "episodic": True,
+            "noise_type": None,
+            "net_arch": "big",  
+            }
 
 
 def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
@@ -357,12 +381,10 @@ def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
     episodic = trial.suggest_categorical("episodic", [True, False])
 
     if episodic:
-        n_episodes_rollout = 1
-        train_freq, gradient_steps = -1, -1
+        train_freq, gradient_steps = (1, "episode"), -1
     else:
         train_freq = trial.suggest_categorical("train_freq", [1, 16, 128, 256, 1000, 2000])
         gradient_steps = train_freq
-        n_episodes_rollout = -1
 
     noise_type = trial.suggest_categorical("noise_type", ["ornstein-uhlenbeck", "normal", None])
     noise_std = trial.suggest_uniform("noise_std", 0, 1)
@@ -385,7 +407,6 @@ def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
         "buffer_size": buffer_size,
         "train_freq": train_freq,
         "gradient_steps": gradient_steps,
-        "n_episodes_rollout": n_episodes_rollout,
         "policy_kwargs": dict(net_arch=net_arch),
     }
 
@@ -420,7 +441,6 @@ def sample_dqn_params(trial: optuna.Trial) -> Dict[str, Any]:
     train_freq = trial.suggest_categorical("train_freq", [1, 4, 8, 16, 128, 256, 1000])
     subsample_steps = trial.suggest_categorical("subsample_steps", [1, 2, 4, 8])
     gradient_steps = max(train_freq // subsample_steps, 1)
-    n_episodes_rollout = -1
 
     net_arch = trial.suggest_categorical("net_arch", ["tiny", "small", "medium"])
 
@@ -433,7 +453,6 @@ def sample_dqn_params(trial: optuna.Trial) -> Dict[str, Any]:
         "buffer_size": buffer_size,
         "train_freq": train_freq,
         "gradient_steps": gradient_steps,
-        "n_episodes_rollout": n_episodes_rollout,
         "exploration_fraction": exploration_fraction,
         "exploration_final_eps": exploration_final_eps,
         "target_update_interval": target_update_interval,
@@ -505,6 +524,8 @@ def default_params(algo: str) -> Dict[str, Any]:
         return default_ppo_params()
     elif algo == "sac":
         return default_sac_params()
+    elif algo == "td3":
+        return default_td3_params()
     else:
         raise NotImplementedError("Missing default parameters for", algo, "algorithm!")
 
