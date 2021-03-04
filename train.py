@@ -44,6 +44,11 @@ if __name__ == "__main__":  # noqa: C901
     parser.add_argument("-f", "--log-folder", help="Log folder", type=str, default="logs")
     parser.add_argument("--seed", help="Random generator seed", type=int, default=-1)
     parser.add_argument("--vec-env", help="VecEnv type", type=str, default="dummy", choices=["dummy", "subproc"])
+    parser.add_argument(
+        "--max-no-improvement-evals", help="Maximum number of evaluations without new best mean reward", default=-1, type=int)
+    parser.add_argument("--min-evals", 
+        help="Number of evaluations before start to count possible no improvement (used when --max-no-improvement-evals is defined)", 
+        default=-1, type=int)    
     parser.add_argument("--n-trials", help="Number of trials for optimizing hyperparameters", type=int, default=10)
     parser.add_argument(
         "-optimize", "--optimize-hyperparameters", action="store_true", default=False, help="Run hyperparameters search"
@@ -93,6 +98,10 @@ if __name__ == "__main__":  # noqa: C901
     )
     parser.add_argument("-uuid", "--uuid", action="store_true", default=False, help="Ensure that the run has a unique ID")
     args = parser.parse_args()
+    
+    # check dependent arguments
+    if args.min_evals > -1 and args.max_no_improvement_evals < 0:
+        parser.error('To use --min-evals argument it is necessary to define also --max-no-improvement-evals')
 
     # Going through custom gym packages to let them register in the global registory
     for env_module in args.gym_packages:
@@ -161,6 +170,8 @@ if __name__ == "__main__":  # noqa: C901
         default_param_as_first_trial=args.default_param_as_first_trial,
         verbose=args.verbose,
         vec_env_type=args.vec_env,
+        max_no_improvement_evals=args.max_no_improvement_evals,
+        min_evals_to_count_improvements=args.min_evals,
     )
 
     # Prepare experiment and launch hyperparameter optimization if needed

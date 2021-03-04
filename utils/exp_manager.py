@@ -1,6 +1,4 @@
 import argparse
-import csv
-import json
 import os
 import time
 import warnings
@@ -16,11 +14,12 @@ from optuna.integration.skopt import SkoptSampler
 from optuna.pruners import BasePruner, MedianPruner, SuccessiveHalvingPruner
 from optuna.samplers import BaseSampler, RandomSampler, TPESampler
 from stable_baselines3.common.base_class import BaseAlgorithm
-from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback, EvalCallback
+from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback #, EvalCallback
+from julio.callbacks import ExtendedEvalCallback, StopTrainingOnNoBestAtLastNEvals
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
-from stable_baselines3.common.preprocessing import is_image_space
+from stable_baselines3.common.preprocessing import is_image_space, is_image_space_channels_first
 from stable_baselines3.common.sb2_compat.rmsprop_tf_like import RMSpropTFLike  # noqa: F401
 from stable_baselines3.common.utils import constant_fn
 from stable_baselines3.common.vec_env import DummyVecEnv, SubprocVecEnv, VecEnv, VecFrameStack, VecNormalize, VecTransposeImage
@@ -75,6 +74,8 @@ class ExperimentManager(object):
         default_param_as_first_trial: bool = False,
         verbose: int = 1,
         vec_env_type: str = "dummy",
+        max_no_improvement_evals=-1,
+        min_evals_to_count_improvements=-1,
     ):
         super(ExperimentManager, self).__init__()
         self.algo = algo
@@ -137,6 +138,10 @@ class ExperimentManager(object):
             self.log_path, f"{self.env_id}_{get_latest_run_id(self.log_path, self.env_id) + 1}{uuid_str}"
         )
         self.params_path = f"{self.save_path}/{self.env_id}"
+        
+        
+        self.max_no_improvement_evals = max_no_improvement_evals
+        self.min_evals_to_count_improvements = min_evals_to_count_improvements
 
     def setup_experiment(self) -> Optional[BaseAlgorithm]:
         """
@@ -412,7 +417,25 @@ class ExperimentManager(object):
                 print("Creating test environment")
 
             save_vec_normalize = SaveVecNormalizeCallback(save_freq=1, save_path=self.params_path)
-            eval_callback = EvalCallback(
+            
+            callback_after_eval=None
+            if self.max_no_improvement_evals > -1:
+                callback_after_eval = StopTrainingOnNoBestAtLastNEvals(
+                                            max_no_improvement_evals=self.max_no_improvement_evals,
+                                            min_evals=self.min_evals_to_count_improvements,
+                                            verbose=self.verbose)
+            
+#             eval_callback = EvalCallback(
+#                 self.create_envs(1, eval_env=True),
+#                 callback_on_new_best=save_vec_normalize,
+#                 best_model_save_path=self.save_path,
+#                 n_eval_episodes=self.n_eval_episodes,
+#                 log_path=self.save_path,
+#                 eval_freq=self.eval_freq,
+#                 deterministic=self.deterministic_eval,
+#             )
+            
+            eval_callback = ExtendedEvalCallback(
                 self.create_envs(1, eval_env=True),
                 callback_on_new_best=save_vec_normalize,
                 best_model_save_path=self.save_path,
@@ -420,6 +443,7 @@ class ExperimentManager(object):
                 log_path=self.save_path,
                 eval_freq=self.eval_freq,
                 deterministic=self.deterministic_eval,
+                callback_after_eval=callback_after_eval,
             )
 
             self.callbacks.append(eval_callback)
@@ -516,7 +540,7 @@ class ExperimentManager(object):
 
         # Wrap if needed to re-order channels
         # (switch from channel last to channel first convention)
-        if is_image_space(env.observation_space):
+        if is_image_space(env.observation_space) and not is_image_space_channels_first(env.observation_space):
             if self.verbose > 0:
                 print("Wrapping into a VecTransposeImage")
             env = VecTransposeImage(env)
