@@ -15,7 +15,7 @@ from optuna.pruners import BasePruner, MedianPruner, SuccessiveHalvingPruner
 from optuna.samplers import BaseSampler, RandomSampler, TPESampler
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback #, EvalCallback
-from julio.callbacks import ExtendedEvalCallback, StopTrainingOnNoBestAtLastNEvals
+from julio.callbacks import ExtendedEvalCallback, StopTrainingOnNoModelImprovement
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -420,7 +420,7 @@ class ExperimentManager(object):
             
             callback_after_eval=None
             if self.max_no_improvement_evals > -1:
-                callback_after_eval = StopTrainingOnNoBestAtLastNEvals(
+                callback_after_eval = StopTrainingOnNoModelImprovement(
                                             max_no_improvement_evals=self.max_no_improvement_evals,
                                             min_evals=self.min_evals_to_count_improvements,
                                             verbose=self.verbose)
