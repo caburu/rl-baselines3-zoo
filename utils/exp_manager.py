@@ -654,7 +654,6 @@ class ExperimentManager(object):
             n_eval_episodes=self.n_eval_episodes,
             eval_freq=eval_freq_,
             deterministic=self.deterministic_eval,
-            verbose=self.verbose,
             callback_after_eval=callback_after_eval
         )
 
