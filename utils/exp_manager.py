@@ -15,7 +15,7 @@ from optuna.pruners import BasePruner, MedianPruner, SuccessiveHalvingPruner
 from optuna.samplers import BaseSampler, RandomSampler, TPESampler
 from stable_baselines3.common.base_class import BaseAlgorithm
 from stable_baselines3.common.callbacks import BaseCallback, CheckpointCallback #, EvalCallback
-from julio.callbacks import ExtendedEvalCallback, StopTrainingOnNoModelImprovement
+from julio.callbacks import ExtendedEvalCallback, StopTrainingOnNoModelImprovement, AlternativeTrialEvalCallback
 from stable_baselines3.common.env_util import make_vec_env
 from stable_baselines3.common.monitor import Monitor
 from stable_baselines3.common.noise import NormalActionNoise, OrnsteinUhlenbeckActionNoise
@@ -640,12 +640,22 @@ class ExperimentManager(object):
         # Account for parallel envs
         eval_freq_ = max(eval_freq // model.get_env().num_envs, 1)
         # Use non-deterministic eval for Atari
-        eval_callback = TrialEvalCallback(
+        
+        callback_after_eval=None
+        if self.max_no_improvement_evals > -1:
+            callback_after_eval = StopTrainingOnNoModelImprovement(
+                                        max_no_improvement_evals=self.max_no_improvement_evals,
+                                        min_evals=self.min_evals_to_count_improvements,
+                                        verbose=self.verbose)
+                                            
+        eval_callback = AlternativeTrialEvalCallback(
             eval_env,
             trial,
             n_eval_episodes=self.n_eval_episodes,
             eval_freq=eval_freq_,
             deterministic=self.deterministic_eval,
+            verbose=self.verbose,
+            callback_after_eval=callback_after_eval
         )
 
         try:

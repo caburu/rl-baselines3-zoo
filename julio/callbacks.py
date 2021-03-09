@@ -2,6 +2,7 @@ from typing import Optional, Union
 
 import numpy as np
 import gym
+import optuna
 
 from stable_baselines3.common.callbacks import BaseCallback, EvalCallback
 from stable_baselines3.common.vec_env import VecEnv
@@ -73,28 +74,28 @@ class ExtendedEvalCallback(EvalCallback):
                     return self.callback_after_eval.on_step()
         return continue_training
         
-class StopTrainingOnNoBestAtLastNEvals(BaseCallback):
+class StopTrainingOnNoModelImprovement(BaseCallback):
     """
-    Stop the training early if there is no new best mean reward in the last N evaluations.
+    Stop the training early if there is no new best model (new best mean reward) after more than N consecutive evaluations.
     
-    It is possible to define a minimum number of evaluations before start to verify evaluations without improvement.    
+    It is possible to define a minimum number of evaluations before start to count evaluations without improvement.   
     
     It must be used with the ``ExtendedEvalCallback``.
     
-    :param max_no_improvement_evals:  Maximum number of evaluations without new best mean reward.
-    :param min_evals: Number of evaluations before start to count possible no improvements.
+    :param max_no_improvement_evals: Maximum number of consecutive evaluations without a new best model.
+    :param min_evals: Number of evaluations before start to count evaluations without improvements.
     :param verbose:
     """
 
     def __init__(self, max_no_improvement_evals: int, min_evals: int = 0, verbose: int = 0):
-        super(StopTrainingOnNoBestAtLastNEvals, self).__init__(verbose=verbose)
+        super(StopTrainingOnNoModelImprovement, self).__init__(verbose=verbose)
         self.max_no_improvement_evals = max_no_improvement_evals
         self.min_evals = min_evals
         self.last_best_mean_reward = -np.inf
         self.no_improvement_evals = 0
 
     def _on_step(self) -> bool:
-        assert self.parent is not None, "``StopTrainingOnNoBestAtLastNEvals`` callback must be used " "with an ``ExtendedEvalCallback``"
+        assert self.parent is not None, "``StopTrainingOnNoModelImprovement`` callback must be used " "with an ``ExtendedEvalCallback``"
         
         continue_training = True
         
@@ -110,11 +111,57 @@ class StopTrainingOnNoBestAtLastNEvals(BaseCallback):
                 
         if self.verbose > 0 and not continue_training:
             print(
-                f"Stopping training because there was no best mean reward in the last {self.no_improvement_evals:d} evaluations"
+                f"Stopping training because there was no new best model in the last {self.no_improvement_evals:d} evaluations"
             )
         
         return continue_training
 
+
+class AlternativeTrialEvalCallback(ExtendedEvalCallback):
+    """
+    Alternative version of the callback used for evaluating and reporting a trial.
+    
+    This version uses `ExtendedEvalCallback`, enabling the possibility of use 
+    `StopTrainingOnNoModelImprovement` also in the tuning process.
+    """
+
+    def __init__(
+        self,
+        eval_env: VecEnv,
+        trial: optuna.Trial,
+        n_eval_episodes: int = 5,
+        eval_freq: int = 10000,
+        deterministic: bool = True,
+        verbose: int = 0,
+        callback_after_eval: Optional[BaseCallback] = None,
+    ):
+
+        super(AlternativeTrialEvalCallback, self).__init__(
+            eval_env=eval_env,
+            callback_after_eval=callback_after_eval,
+            n_eval_episodes=n_eval_episodes,
+            eval_freq=eval_freq,
+            deterministic=deterministic,
+            verbose=verbose,
+        )
+        self.trial = trial
+        self.eval_idx = 0
+        self.is_pruned = False
+
+    def _on_step(self) -> bool:
+        if self.eval_freq > 0 and self.n_calls % self.eval_freq == 0:
+            continue_training = super(AlternativeTrialEvalCallback, self)._on_step()
+            self.eval_idx += 1
+            # report best or report current ?
+            # report num_timesteps or elasped time ?
+            self.trial.report(self.last_mean_reward, self.eval_idx)
+            # Prune trial if need
+            if self.trial.should_prune():
+                self.is_pruned = True
+                return False
+            else:
+                return continue_training
+        return True
 
 # Código pra testar
 
@@ -123,7 +170,7 @@ class StopTrainingOnNoBestAtLastNEvals(BaseCallback):
 # # Separate evaluation env
 # eval_env = gym.make('Pendulum-v0')
 # # Use deterministic actions for evaluation
-# callback_after_eval = StopTrainingOnNoBestAtLastNEvals(
+# callback_after_eval = StopTrainingOnNoModelImprovement(
 #                             max_no_improvement_evals=2,
 #                             min_evals=2,
 #                             verbose=1)
