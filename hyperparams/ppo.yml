@@ -384,4 +384,8 @@ CarRacing-v0:
                        ortho_init=False,
                        )"
 
+sc-2perstage-seasonal-v0:
+  policy: 'MlpPolicy'
+  n_timesteps: 360000
+
 

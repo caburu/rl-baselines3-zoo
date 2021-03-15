@@ -181,3 +181,9 @@ InvertedPendulumSwingupBulletEnv-v0:
   n_episodes_rollout: 1
   learning_rate: !!float 1e-3
   policy_kwargs: "dict(net_arch=[400, 300])"
+
+sc-2perstage-seasonal-v0:
+  policy: 'MlpPolicy'
+  n_timesteps: 360000
+
+

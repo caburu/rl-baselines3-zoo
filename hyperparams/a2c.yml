@@ -234,3 +234,9 @@ ReacherBulletEnv-v0:
   learning_rate: lin_0.0008
   use_sde: True
   policy_kwargs: "dict(log_std_init=-2, ortho_init=False)"
+
+sc-2perstage-seasonal-v0:
+  policy: 'MlpPolicy'
+  n_timesteps: 360000
+
+
