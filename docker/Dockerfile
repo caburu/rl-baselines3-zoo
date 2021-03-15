@@ -9,8 +9,11 @@ RUN apt-get -y update \
     swig \
     xvfb \
     libxrandr2 \
+    sudo \
+    postgresql-client \
     && apt-get clean \
-    && rm -rf /var/lib/apt/lists/*
+    && rm -rf /var/lib/apt/lists/* 
+    
 
 ENV CODE_DIR /root/code
 ENV VENV /root/venv
@@ -23,6 +26,7 @@ RUN \
     pip install -r /tmp/requirements.txt && \
     pip install git+https://github.com/eleurent/highway-env && \
     pip install numpy matplotlib pandas tqdm && \
+    pip install psycopg2-binary && \
     rm -rf $HOME/.cache/pip
 
 ENV PATH=$VENV/bin:$PATH

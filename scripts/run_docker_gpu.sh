@@ -13,6 +13,7 @@ docker run \
   --rm \
   --network host \
   --ipc=host \
+  --add-host=database:127.0.0.1 \
   -v $(pwd)/../../gym-supplychain:/root/code/gym-supplychain \
   -v $(pwd)/../../phd-research/supply-chain/stochastic_demands/supplychain_ext1:/root/code/supplychain_ext1 \
   --mount src=$(pwd),target=/root/code/rl_zoo,type=bind \
