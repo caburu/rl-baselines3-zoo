@@ -544,6 +544,8 @@ def default_params(algo: str) -> Dict[str, Any]:
         return default_sac_params()
     elif algo == "td3":
         return default_td3_params()
+    elif algo == "a2c":
+        return default_a2c_params()
     else:
         raise NotImplementedError("Missing default parameters for", algo, "algorithm!")
 
