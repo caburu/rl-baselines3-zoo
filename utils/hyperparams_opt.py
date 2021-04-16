@@ -144,8 +144,8 @@ def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
     # activation_fn = trial.suggest_categorical('activation_fn', ['tanh', 'relu', 'elu', 'leaky_relu'])
     activation_fn = trial.suggest_categorical("activation_fn", ["tanh", "relu"])
 
-    if lr_schedule == "linear":
-        learning_rate = linear_schedule(learning_rate)
+    #if lr_schedule == "linear":
+    #    learning_rate = linear_schedule(learning_rate)
 
     net_arch = {
         "small":  [dict(pi=[ 64,  64], vf=[ 64,  64])],
