@@ -131,14 +131,14 @@ def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
     use_rms_prop = trial.suggest_categorical("use_rms_prop", [False, True])
     gae_lambda = trial.suggest_categorical("gae_lambda", [0.8, 0.9, 0.92, 0.95, 0.98, 0.99, 1.0])
     n_steps = trial.suggest_categorical("n_steps", [8, 16, 32, 64, 128, 256, 512, 1024, 2048])
-    lr_schedule = trial.suggest_categorical("lr_schedule", ["linear", "constant"])
+    # lr_schedule = trial.suggest_categorical("lr_schedule", ["linear", "constant"])
     learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
     ent_coef = trial.suggest_loguniform("ent_coef", 0.00000001, 0.1)
     vf_coef = trial.suggest_uniform("vf_coef", 0, 1)
     # Uncomment for gSDE (continuous actions)
     # log_std_init = trial.suggest_uniform("log_std_init", -4, 1)
     ortho_init = trial.suggest_categorical("ortho_init", [False, True])
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "large"])
     # sde_net_arch = trial.suggest_categorical("sde_net_arch", [None, "tiny", "small"])
     # full_std = trial.suggest_categorical("full_std", [False, True])
     # activation_fn = trial.suggest_categorical('activation_fn', ['tanh', 'relu', 'elu', 'leaky_relu'])
@@ -148,8 +148,9 @@ def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
         learning_rate = linear_schedule(learning_rate)
 
     net_arch = {
-        "small": [dict(pi=[64, 64], vf=[64, 64])],
-        "medium": [dict(pi=[256, 256], vf=[256, 256])],
+        "small":  [dict(pi=[ 64,  64], vf=[ 64,  64])],
+        "medium": [dict(pi=[128, 128], vf=[128, 128])],
+        "large":  [dict(pi=[256, 256], vf=[256, 256])]
     }[net_arch]
 
     # sde_net_arch = {
@@ -179,6 +180,24 @@ def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
             ortho_init=ortho_init,
         ),
     }
+
+def default_a2c_params() -> Dict[str, Any]:
+    return {
+            "gamma": 0.99,
+            "normalize_advantage": False,
+            "max_grad_norm": 0.5,
+            "use_rms_prop": True,
+            "gae_lambda": 1.0,
+            "n_steps": 5,
+            # "lr_schedule": 0.95,
+            "lr": 0.0007,
+            "ent_coef": 0.0,
+            "vf_coef": 0.5,
+            "ortho_init": False,
+            "net_arch": "small",
+            "activation_fn": "tanh",
+            }
+
 
 
 def sample_sac_params(trial: optuna.Trial) -> Dict[str, Any]:
