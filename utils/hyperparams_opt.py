@@ -57,8 +57,8 @@ def sample_ppo_params(trial: optuna.Trial) -> Dict[str, Any]:
     # sde_sample_freq = trial.suggest_categorical("sde_sample_freq", [-1, 8, 16, 32, 64, 128, 256])
     
     # Orthogonal initialization
-    ortho_init = False
-    # ortho_init = trial.suggest_categorical('ortho_init', [False, True])
+    # ortho_init = False
+    ortho_init = trial.suggest_categorical('ortho_init', [False, True])
     
     # activation_fn = trial.suggest_categorical('activation_fn', ['tanh', 'relu', 'elu', 'leaky_relu'])    
     activation_fn = trial.suggest_categorical("activation_fn", ["tanh", "relu"])
@@ -114,7 +114,8 @@ def default_ppo_params() -> Dict[str, Any]:
             "max_grad_norm": 0.5,
             "vf_coef": 0.5,
             "net_arch": "small",
-            "activation_fn": "tanh"
+            "activation_fn": "tanh",
+            "ortho_init": True,
             }
                                     
 def sample_a2c_params(trial: optuna.Trial) -> Dict[str, Any]:
