@@ -185,5 +185,6 @@ InvertedPendulumSwingupBulletEnv-v0:
 sc-2perstage-seasonal-v0:
   policy: 'MlpPolicy'
   n_timesteps: 360000
+  normalize: "{'norm_obs':False, 'norm_reward':True}"
 
 
