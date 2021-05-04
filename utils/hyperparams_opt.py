@@ -391,9 +391,15 @@ def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
     :return:
     """
     gamma = trial.suggest_categorical("gamma", [0.9, 0.95, 0.98, 0.99, 0.995, 0.999, 0.9999])
-    learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
-    batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 100, 128, 256, 512, 1024, 2048])
+    
+    # learning_rate = trial.suggest_loguniform("lr", 1e-5, 1)
+    learning_rate = trial.suggest_loguniform("lr", 1e-5, 0.01)
+    
+    # batch_size = trial.suggest_categorical("batch_size", [16, 32, 64, 100, 128, 256, 512, 1024, 2048])
+    batch_size = trial.suggest_categorical("batch_size", [64, 100, 256, 512, 1024, 2048])
+    
     buffer_size = trial.suggest_categorical("buffer_size", [int(1e4), int(1e5), int(1e6)])
+    
     # Polyak coeff
     tau = trial.suggest_categorical("tau", [0.001, 0.005, 0.01, 0.02])
 
@@ -409,12 +415,15 @@ def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
     noise_std = trial.suggest_uniform("noise_std", 0, 1)
 
     # NOTE: Add "verybig" to net_arch when tuning HER (see TD3)
-    net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    # net_arch = trial.suggest_categorical("net_arch", ["small", "medium", "big"])
+    net_arch = trial.suggest_categorical("net_arch", ["small", "large", "big"])
+    
     # activation_fn = trial.suggest_categorical('activation_fn', [nn.Tanh, nn.ReLU, nn.ELU, nn.LeakyReLU])
 
     net_arch = {
         "small": [64, 64],
-        "medium": [256, 256],
+        # "medium": [256, 256],
+        "large":  [256, 256],
         "big": [400, 300],
     }[net_arch]
 
@@ -440,6 +449,18 @@ def sample_ddpg_params(trial: optuna.Trial) -> Dict[str, Any]:
 
     return hyperparams
 
+def default_ddpg_params() -> Dict[str, Any]:
+    return {
+            "gamma": 0.99,
+            "lr": 0.001,
+            "batch_size": 100,
+            "buffer_size": 1000000,
+            "learning_starts": 100,
+            "tau": 0.005,
+            "episodic": True,
+            "noise_type": None,
+            "net_arch": "big",  
+            }
 
 def sample_dqn_params(trial: optuna.Trial) -> Dict[str, Any]:
     """
@@ -539,6 +560,7 @@ HYPERPARAMS_SAMPLER = {
 }
 
 def default_params(algo: str) -> Dict[str, Any]:
+
     if algo == "ppo":
         return default_ppo_params()
     elif algo == "sac":
@@ -547,6 +569,8 @@ def default_params(algo: str) -> Dict[str, Any]:
         return default_td3_params()
     elif algo == "a2c":
         return default_a2c_params()
+    elif algo == "ddpg":
+        return default_ddpg_params()
     else:
-        raise NotImplementedError("Missing default parameters for", algo, "algorithm!")
+        raise NotImplementedError(f"Missing default parameters for {algo} algorithm!")
 
